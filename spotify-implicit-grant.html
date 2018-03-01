@@ -24,6 +24,9 @@
     <template is="dom-if" if="{{authorization.authorized}}">
       <slot name="authorized"></slot>
     </template>
+    <template is="dom-if" if="{{authorization.pending}}">
+      <slot name="pending"></slot>
+    </template>
   </template>
 
   <script>
@@ -191,21 +194,16 @@
         this.addEventListener('authorized', () => {
           this._generateNewState();
           if (this.keepAlive)
-            setTimeout(() => this._switchAuthorization('UNAUTHORIZED'), this.expireIn);
+            setTimeout(() => {
+              if (this.autoRedirect) {
+                this.redirectToAuthPage();
+              } else {
+                this._switchAuthorization('UNAUTHORIZED');
+              }
+            }, this.expireIn);
         });
 
-        this.addEventListener('unauthorized', () => {
-          this._generateNewState();
-          if (this.autoRedirect)
-            window.location.href = this.authUrl;
-        });
-
-        Polymer.RenderStatus.afterNextRender(this, function () {
-
-          // Generate a new state if there isn't one already
-          if (!this._state) {
-            this._generateNewState();
-          }
+        Polymer.RenderStatus.beforeNextRender(this, function () {
 
           // Check if the token is stored
           if (this._accessToken && this.expireIn > 0) {
@@ -225,7 +223,12 @@
 
           // Set to unauthorized by default
           if (this.authorization.pending) {
-            this._switchAuthorization('UNAUTHORIZED');
+            this._generateNewState();
+            if (this.autoRedirect) {
+              this.redirectToAuthPage();
+            } else {
+              this._switchAuthorization('UNAUTHORIZED');
+            }
           }
 
         });
@@ -233,6 +236,10 @@
 
       get expireIn() {
         return this._expireDate - Date.now();
+      }
+
+      redirectToAuthPage() {
+        window.location.href = this.authUrl;
       }
 
       _computeRedirectUri(callbackPath, path) {
@@ -263,6 +270,11 @@
         this._state = Math.random().toString(36).slice(2);
       }
 
+      /**
+      * Set authorization state.
+      *
+      * @param {String} value AUTHORIZED, UNAUTHORIZED or PENDING.
+      */
       _switchAuthorization(value) {
         console.log(value)
         switch (value) {
@@ -270,18 +282,33 @@
             this.set('authorization.authorized', true);
             this.set('authorization.unauthorized', false);
             this.set('authorization.pending', false);
+            /**
+            * Fired when `authorization` is set to AUTHORIZED.
+            *
+            * @event authorize
+            */
             this.dispatchEvent(new CustomEvent('authorized'));
             break;
           case 'UNAUTHORIZED':
             this.set('authorization.authorized', false);
             this.set('authorization.unauthorized', true);
             this.set('authorization.pending', false);
+            /**
+            * Fired when `authorization` is set to UNAUTHORIZED.
+            *
+            * @event authorize
+            */
             this.dispatchEvent(new CustomEvent('unauthorized'));
             break;
           case 'PENDING':
             this.set('authorization.authorized', false);
             this.set('authorization.unauthorized', false);
             this.set('authorization.pending', true);
+            /**
+            * Fired when `authorization` is set to PENDING.
+            *
+            * @event authorize
+            */
             this.dispatchEvent(new CustomEvent('pending'));
             break;
         }
