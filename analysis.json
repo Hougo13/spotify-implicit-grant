@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "elements": [
     {
-      "description": "`spotify-implicit-grant`",
+      "description": "`spotify-implicit-grant` allows you to get a spotify access token via the implicit grant flow.\n\nYou can get an authUrl to redirect your users to the spotify authorization page via a button for instance. \nOr you can add the attribute `auto-redirect` and the component will automatically redirect the users to the spotify authorization page when needed.",
       "summary": "",
       "path": "spotify-implicit-grant.html",
       "properties": [
@@ -584,15 +584,15 @@
         {
           "name": "clientId",
           "type": "string",
-          "description": "Spotify api properties",
+          "description": "**Required**.\n\nThe client ID provided to you by Spotify when you register your application.",
           "privacy": "public",
           "sourceRange": {
             "start": {
-              "line": 43,
+              "line": 49,
               "column": 10
             },
             "end": {
-              "line": 45,
+              "line": 51,
               "column": 11
             }
           },
@@ -603,89 +603,28 @@
         {
           "name": "scope",
           "type": "string",
-          "description": "",
+          "description": "A space-separated list of spotify scopes.",
           "privacy": "public",
           "sourceRange": {
             "start": {
-              "line": 46,
+              "line": 55,
               "column": 10
             },
             "end": {
-              "line": 49,
+              "line": 58,
               "column": 11
             }
           },
           "metadata": {
             "polymer": {}
           },
-          "defaultValue": "[]"
+          "defaultValue": "\"\""
         },
         {
           "name": "showDialog",
           "type": "boolean",
-          "description": "",
+          "description": "Whether or not to force the user to approve the app again if they’ve already done so. If false (default), a user who has already approved the application may be automatically redirected to the URI specified by redirect_uri. If true, the user will not be automatically redirected and will have to approve the app again.",
           "privacy": "public",
-          "sourceRange": {
-            "start": {
-              "line": 50,
-              "column": 10
-            },
-            "end": {
-              "line": 53,
-              "column": 11
-            }
-          },
-          "metadata": {
-            "polymer": {}
-          },
-          "defaultValue": "false"
-        },
-        {
-          "name": "_responseType",
-          "type": "string",
-          "description": "",
-          "privacy": "protected",
-          "sourceRange": {
-            "start": {
-              "line": 54,
-              "column": 10
-            },
-            "end": {
-              "line": 57,
-              "column": 11
-            }
-          },
-          "metadata": {
-            "polymer": {}
-          },
-          "defaultValue": "\"token\""
-        },
-        {
-          "name": "_redirectUri",
-          "type": "string",
-          "description": "",
-          "privacy": "protected",
-          "sourceRange": {
-            "start": {
-              "line": 58,
-              "column": 10
-            },
-            "end": {
-              "line": 61,
-              "column": 11
-            }
-          },
-          "metadata": {
-            "polymer": {
-              "readOnly": true
-            }
-          }
-        },
-        {
-          "name": "_state",
-          "type": "string",
-          "description": "",
-          "privacy": "protected",
           "sourceRange": {
             "start": {
               "line": 62,
@@ -699,20 +638,81 @@
           "metadata": {
             "polymer": {}
           },
+          "defaultValue": "false"
+        },
+        {
+          "name": "_responseType",
+          "type": "string",
+          "description": "A required but static field by Spotify.",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 69,
+              "column": 10
+            },
+            "end": {
+              "line": 72,
+              "column": 11
+            }
+          },
+          "metadata": {
+            "polymer": {}
+          },
+          "defaultValue": "\"token\""
+        },
+        {
+          "name": "_redirectUri",
+          "type": "string",
+          "description": "The URI to redirect to after the user grants/denies permission. This URI needs to be entered in the URI whitelist that you specify when you register your application.",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 76,
+              "column": 10
+            },
+            "end": {
+              "line": 79,
+              "column": 11
+            }
+          },
+          "metadata": {
+            "polymer": {
+              "readOnly": true
+            }
+          }
+        },
+        {
+          "name": "_state",
+          "type": "string",
+          "description": "Used by default (when storage is enabled) for correlating requests and responses.",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 83,
+              "column": 10
+            },
+            "end": {
+              "line": 86,
+              "column": 11
+            }
+          },
+          "metadata": {
+            "polymer": {}
+          },
           "defaultValue": "\"\""
         },
         {
           "name": "callbackPath",
           "type": "string",
-          "description": "Component properties",
+          "description": "Custom path for the redirectUri. By default the current path is used.",
           "privacy": "public",
           "sourceRange": {
             "start": {
-              "line": 68,
+              "line": 91,
               "column": 10
             },
             "end": {
-              "line": 70,
+              "line": 93,
               "column": 11
             }
           },
@@ -723,15 +723,15 @@
         {
           "name": "noStorage",
           "type": "boolean",
-          "description": "",
+          "description": "Disable the use of localStorage. Not recommended because it disable the use of state.",
           "privacy": "public",
           "sourceRange": {
             "start": {
-              "line": 71,
+              "line": 97,
               "column": 10
             },
             "end": {
-              "line": 75,
+              "line": 101,
               "column": 11
             }
           },
@@ -743,15 +743,15 @@
         {
           "name": "autoRedirect",
           "type": "boolean",
-          "description": "",
+          "description": "Redirect automatically to the Spotify authorization page.",
           "privacy": "public",
           "sourceRange": {
             "start": {
-              "line": 76,
+              "line": 105,
               "column": 10
             },
             "end": {
-              "line": 80,
+              "line": 109,
               "column": 11
             }
           },
@@ -763,15 +763,15 @@
         {
           "name": "keepAlive",
           "type": "boolean",
-          "description": "",
+          "description": "Put back the app in an unauthorized state when the access_token expire.\nCan be combined with autoRedirect to redirect automatically to the Spotify authorization page when the access_token expire.",
           "privacy": "public",
           "sourceRange": {
             "start": {
-              "line": 81,
+              "line": 114,
               "column": 10
             },
             "end": {
-              "line": 85,
+              "line": 118,
               "column": 11
             }
           },
@@ -783,15 +783,15 @@
         {
           "name": "authUrl",
           "type": "string",
-          "description": "",
+          "description": "The url to the Spotify authorization page.\nUsed generally in the unauthorizd slot.",
           "privacy": "public",
           "sourceRange": {
             "start": {
-              "line": 86,
+              "line": 123,
               "column": 10
             },
             "end": {
-              "line": 90,
+              "line": 127,
               "column": 11
             }
           },
@@ -805,15 +805,15 @@
         {
           "name": "accessToken",
           "type": "string",
-          "description": "",
+          "description": "The access_token in read only mode to use only in the autorized slot.",
           "privacy": "public",
           "sourceRange": {
             "start": {
-              "line": 91,
+              "line": 131,
               "column": 10
             },
             "end": {
-              "line": 96,
+              "line": 136,
               "column": 11
             }
           },
@@ -826,16 +826,16 @@
         },
         {
           "name": "authorization",
-          "type": "Object",
-          "description": "",
+          "type": "{authorized: Boolean, unauthorized: Boolean, pending: Boolean}",
+          "description": "An object to represent the state of the authorization.",
           "privacy": "public",
           "sourceRange": {
             "start": {
-              "line": 97,
+              "line": 142,
               "column": 10
             },
             "end": {
-              "line": 106,
+              "line": 151,
               "column": 11
             }
           },
@@ -849,15 +849,15 @@
         {
           "name": "_accessToken",
           "type": "string",
-          "description": "",
+          "description": "The access_token used internally.\nSync to the localStorage.",
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 107,
+              "line": 156,
               "column": 10
             },
             "end": {
-              "line": 110,
+              "line": 159,
               "column": 11
             }
           },
@@ -869,15 +869,15 @@
         {
           "name": "_expireDate",
           "type": "number",
-          "description": "",
+          "description": "The date (in millis) of the token expiration",
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 111,
+              "line": 163,
               "column": 10
             },
             "end": {
-              "line": 114,
+              "line": 166,
               "column": 11
             }
           },
@@ -888,16 +888,16 @@
         },
         {
           "name": "_location",
-          "type": "Object",
-          "description": "",
+          "type": "{path: String, query: String, hash: String}",
+          "description": "Represent the window location.",
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 115,
+              "line": 172,
               "column": 10
             },
             "end": {
-              "line": 118,
+              "line": 175,
               "column": 11
             }
           },
@@ -908,15 +908,15 @@
         {
           "name": "_storeId",
           "type": "string",
-          "description": "",
+          "description": "The key used in the localStorage.",
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 119,
+              "line": 179,
               "column": 10
             },
             "end": {
-              "line": 122,
+              "line": 182,
               "column": 11
             }
           },
@@ -3061,11 +3061,11 @@
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 176,
+              "line": 236,
               "column": 6
             },
             "end": {
-              "line": 178,
+              "line": 238,
               "column": 7
             }
           },
@@ -3085,11 +3085,11 @@
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 180,
+              "line": 240,
               "column": 6
             },
             "end": {
-              "line": 190,
+              "line": 250,
               "column": 7
             }
           },
@@ -3121,11 +3121,11 @@
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 192,
+              "line": 252,
               "column": 6
             },
             "end": {
-              "line": 194,
+              "line": 254,
               "column": 7
             }
           },
@@ -3142,11 +3142,11 @@
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 196,
+              "line": 256,
               "column": 6
             },
             "end": {
-              "line": 198,
+              "line": 258,
               "column": 7
             }
           },
@@ -3163,11 +3163,11 @@
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 200,
+              "line": 260,
               "column": 6
             },
             "end": {
-              "line": 202,
+              "line": 262,
               "column": 7
             }
           },
@@ -3180,11 +3180,11 @@
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 204,
+              "line": 264,
               "column": 6
             },
             "end": {
-              "line": 226,
+              "line": 286,
               "column": 7
             }
           },
@@ -4140,11 +4140,11 @@
       "metadata": {},
       "sourceRange": {
         "start": {
-          "line": 37,
+          "line": 39,
           "column": 4
         },
         "end": {
-          "line": 228,
+          "line": 288,
           "column": 5
         }
       },
@@ -4154,14 +4154,14 @@
       "attributes": [
         {
           "name": "client-id",
-          "description": "Spotify api properties",
+          "description": "**Required**.\n\nThe client ID provided to you by Spotify when you register your application.",
           "sourceRange": {
             "start": {
-              "line": 43,
+              "line": 49,
               "column": 10
             },
             "end": {
-              "line": 45,
+              "line": 51,
               "column": 11
             }
           },
@@ -4170,14 +4170,14 @@
         },
         {
           "name": "scope",
-          "description": "",
+          "description": "A space-separated list of spotify scopes.",
           "sourceRange": {
             "start": {
-              "line": 46,
+              "line": 55,
               "column": 10
             },
             "end": {
-              "line": 49,
+              "line": 58,
               "column": 11
             }
           },
@@ -4186,14 +4186,14 @@
         },
         {
           "name": "show-dialog",
-          "description": "",
+          "description": "Whether or not to force the user to approve the app again if they’ve already done so. If false (default), a user who has already approved the application may be automatically redirected to the URI specified by redirect_uri. If true, the user will not be automatically redirected and will have to approve the app again.",
           "sourceRange": {
             "start": {
-              "line": 50,
+              "line": 62,
               "column": 10
             },
             "end": {
-              "line": 53,
+              "line": 65,
               "column": 11
             }
           },
@@ -4202,14 +4202,14 @@
         },
         {
           "name": "callback-path",
-          "description": "Component properties",
+          "description": "Custom path for the redirectUri. By default the current path is used.",
           "sourceRange": {
             "start": {
-              "line": 68,
+              "line": 91,
               "column": 10
             },
             "end": {
-              "line": 70,
+              "line": 93,
               "column": 11
             }
           },
@@ -4218,14 +4218,14 @@
         },
         {
           "name": "no-storage",
-          "description": "",
+          "description": "Disable the use of localStorage. Not recommended because it disable the use of state.",
           "sourceRange": {
             "start": {
-              "line": 71,
+              "line": 97,
               "column": 10
             },
             "end": {
-              "line": 75,
+              "line": 101,
               "column": 11
             }
           },
@@ -4234,14 +4234,14 @@
         },
         {
           "name": "auto-redirect",
-          "description": "",
+          "description": "Redirect automatically to the Spotify authorization page.",
           "sourceRange": {
             "start": {
-              "line": 76,
+              "line": 105,
               "column": 10
             },
             "end": {
-              "line": 80,
+              "line": 109,
               "column": 11
             }
           },
@@ -4250,14 +4250,14 @@
         },
         {
           "name": "keep-alive",
-          "description": "",
+          "description": "Put back the app in an unauthorized state when the access_token expire.\nCan be combined with autoRedirect to redirect automatically to the Spotify authorization page when the access_token expire.",
           "sourceRange": {
             "start": {
-              "line": 81,
+              "line": 114,
               "column": 10
             },
             "end": {
-              "line": 85,
+              "line": 118,
               "column": 11
             }
           },
@@ -4266,14 +4266,14 @@
         },
         {
           "name": "auth-url",
-          "description": "",
+          "description": "The url to the Spotify authorization page.\nUsed generally in the unauthorizd slot.",
           "sourceRange": {
             "start": {
-              "line": 86,
+              "line": 123,
               "column": 10
             },
             "end": {
-              "line": 90,
+              "line": 127,
               "column": 11
             }
           },
@@ -4282,14 +4282,14 @@
         },
         {
           "name": "access-token",
-          "description": "",
+          "description": "The access_token in read only mode to use only in the autorized slot.",
           "sourceRange": {
             "start": {
-              "line": 91,
+              "line": 131,
               "column": 10
             },
             "end": {
-              "line": 96,
+              "line": 136,
               "column": 11
             }
           },
@@ -4298,19 +4298,19 @@
         },
         {
           "name": "authorization",
-          "description": "",
+          "description": "An object to represent the state of the authorization.",
           "sourceRange": {
             "start": {
-              "line": 97,
+              "line": 142,
               "column": 10
             },
             "end": {
-              "line": 106,
+              "line": 151,
               "column": 11
             }
           },
           "metadata": {},
-          "type": "Object"
+          "type": "{authorized: Boolean, unauthorized: Boolean, pending: Boolean}"
         }
       ],
       "events": [
