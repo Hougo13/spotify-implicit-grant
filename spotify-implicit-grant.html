@@ -221,6 +221,22 @@
             this.set('_location.hash', '');
           }
 
+          // Look for an error in the query
+          let query = new URLSearchParams(this._location.query);
+          if (query.has('error')) {
+            if (this.noStorage || this._state == query.get('state')) {
+              this._generateNewState();
+              this._switchAuthorization('UNAUTHORIZED');
+              /**
+              * Fired when spotify api respond an error.
+              *
+              * @event error
+              */
+              this.dispatchEvent(new CustomEvent('error', { detail: { message: query.get('error') } }));
+            }
+            this.set('_location.query', '');
+          }
+
           // Set to unauthorized by default
           if (this.authorization.pending) {
             this._generateNewState();
