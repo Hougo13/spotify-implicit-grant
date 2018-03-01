@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+    <title>spotify-implicit-grant demo</title>
+
+    <script src="../../webcomponentsjs/webcomponents-loader.js"></script>
+    <link rel="import" href="../../polymer/lib/elements/dom-bind.html">
+
+    <link rel="import" href="../spotify-implicit-grant.html">
+
+    <custom-style>
+        <style is="custom-style" include="demo-pages-shared-styles">
+        </style>
+    </custom-style>
+</head>
+
+<body>
+    <div class="vertical-section-container centered">
+        <h3>Basic spotify-implicit-grant demo</h3>
+        <dom-bind>
+            <template>
+                <spotify-implicit-grant client-id="c2d94849fcf8419cb33caf9af8d85f7b" auth-url={{authUrl}} access-token={{accessToken}} scope="user-read-private user-read-birthdate"
+                    keep-alive>
+                    <div slot="unauthorized">
+                        <h1>Unauthorized Slot</h1>
+                        <p>Please connect yourself by clicking on the button below</p>
+                        <button>
+                            <a href="[[authUrl]]">Login</a>
+                        </button>
+                    </div>
+                    <div slot="authorized">
+                        <h1>Authorized slot</h1>
+                        <p>[[accessToken]]</p>
+                    </div>
+                </spotify-implicit-grant>
+            </template>
+        </dom-bind>
+    </div>
+</body>
+
+</html>

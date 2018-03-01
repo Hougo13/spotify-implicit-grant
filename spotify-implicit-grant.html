@@ -1,0 +1,233 @@
+<link rel="import" href="../polymer/polymer-element.html">
+<link rel="import" href="../iron-location/iron-location.html">
+<link rel="import" href="../app-storage/app-localstorage/app-localstorage-document.html">
+
+<dom-module id="spotify-implicit-grant">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+
+    <iron-location path={{_location.path}} query={{_location.query}} hash={{_location.hash}}></iron-location>
+
+    <template is="dom-if" if="{{!noStorage}}">
+      <app-localstorage-document key="[[_storeId]].state" data="{{_state}}"></app-localstorage-document>
+      <app-localstorage-document key="[[_storeId]].access_token" data="{{_accessToken}}"></app-localstorage-document>
+      <app-localstorage-document key="[[_storeId]].expire_date" data="{{_expireDate}}"></app-localstorage-document>
+    </template>
+
+    <template is="dom-if" if="{{authorization.unauthorized}}">
+      <slot name="unauthorized"></slot>
+    </template>
+    <template is="dom-if" if="{{authorization.authorized}}">
+      <slot name="authorized"></slot>
+    </template>
+  </template>
+
+  <script>
+    /**
+     * `spotify-implicit-grant`
+     * 
+     *
+     * @customElement
+     * @polymer
+     * @demo demo/index.html
+     */
+    class SpotifyImplicitGrant extends Polymer.Element {
+      static get is() { return 'spotify-implicit-grant'; }
+      static get properties() {
+        return {
+
+          // Spotify api properties
+          clientId: {
+            type: String,
+          },
+          scope: {
+            type: String,
+            value: '',
+          },
+          showDialog: {
+            type: Boolean,
+            value: false,
+          },
+          _responseType: {
+            type: String,
+            value: 'token',
+          },
+          _redirectUri: {
+            type: String,
+            computed: '_computeRedirectUri(callbackPath, _location.path)',
+          },
+          _state: {
+            type: String,
+            value: '',
+          },
+
+          // Component properties
+          callbackPath: {
+            type: String,
+          },
+          noStorage: {
+            type: Boolean,
+            reflectToAttribute: true,
+            value: false,
+          },
+          autoRedirect: {
+            type: Boolean,
+            reflectToAttribute: true,
+            value: false,
+          },
+          keepAlive: {
+            type: Boolean,
+            reflectToAttribute: true,
+            value: false,
+          },
+          authUrl: {
+            type: String,
+            computed: '_computeAuthUrl(clientId, _responseType, _redirectUri, _state, scope, showDialog)',
+            notify: true,
+          },
+          accessToken: {
+            type: String,
+            notify: true,
+            readOnly: true,
+            computed: '_computeAccessToken(_accessToken)',
+          },
+          authorization: {
+            type: Object,
+            readOnly: true,
+            notify: true,
+            value: {
+              authorized: false,
+              unauthorized: false,
+              pending: true,
+            },
+          },
+          _accessToken: {
+            type: String,
+            value: '',
+          },
+          _expireDate: {
+            type: Number,
+            value: 0,
+          },
+          _location: {
+            type: Object,
+            value: { path: '', query: '', hash: '' },
+          },
+          _storeId: {
+            type: String,
+            computed: '_computeStoreId(clientId)',
+          },
+        };
+      }
+
+      constructor() {
+        super();
+
+        this.addEventListener('authorized', () => {
+          this._generateNewState();
+          if (this.keepAlive)
+            setTimeout(() => this._switchAuthorization('UNAUTHORIZED'), this.expireIn);
+        });
+
+        this.addEventListener('unauthorized', () => {
+          this._generateNewState();
+          if (this.autoRedirect)
+            window.location.href = this.authUrl;
+        });
+
+        Polymer.RenderStatus.afterNextRender(this, function () {
+
+          // Generate a new state if there isn't one already
+          if (!this._state) {
+            this._generateNewState();
+          }
+
+          // Check if the token is stored
+          if (this._accessToken && this.expireIn > 0) {
+            this._switchAuthorization('AUTHORIZED');
+          }
+
+          // Look for an access_token in the hash of the url
+          let hash = new URLSearchParams(this._location.hash);
+          if (hash.has('access_token')) {
+            if (this.noStorage || this._state == hash.get('state')) {
+              this._accessToken = hash.get('access_token');
+              this._expireDate = Date.now() + (hash.get('expires_in') * 1000);
+              this._switchAuthorization('AUTHORIZED');
+            }
+            this.set('_location.hash', '');
+          }
+
+          // Set to unauthorized by default
+          if (this.authorization.pending) {
+            this._switchAuthorization('UNAUTHORIZED');
+          }
+
+        });
+      }
+
+      get expireIn() {
+        return this._expireDate - Date.now();
+      }
+
+      _computeRedirectUri(callbackPath, path) {
+        return window.location.origin + (callbackPath ? callbackPath : path);
+      }
+
+      _computeAuthUrl(clientId, responseType, redirectUri, state, scope, showDialog) {
+        const baseUrl = 'https://accounts.spotify.com/authorize?';
+        let query = `client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=${responseType}&show_dialog=${showDialog}`;
+
+        if (scope)
+          query += `&scope=${encodeURI(scope)}`;
+        if (state)
+          query += `&state=${state}`;
+
+        return baseUrl + query
+      }
+
+      _computeStoreId(cliendId) {
+        return `spotify-implicit-grand#${cliendId}`;
+      }
+
+      _computeAccessToken(accessToken) {
+        return accessToken;
+      }
+
+      _generateNewState() {
+        this._state = Math.random().toString(36).slice(2);
+      }
+
+      _switchAuthorization(value) {
+        console.log(value)
+        switch (value) {
+          case 'AUTHORIZED':
+            this.set('authorization.authorized', true);
+            this.set('authorization.unauthorized', false);
+            this.set('authorization.pending', false);
+            this.dispatchEvent(new CustomEvent('authorized'));
+            break;
+          case 'UNAUTHORIZED':
+            this.set('authorization.authorized', false);
+            this.set('authorization.unauthorized', true);
+            this.set('authorization.pending', false);
+            this.dispatchEvent(new CustomEvent('unauthorized'));
+            break;
+          case 'PENDING':
+            this.set('authorization.authorized', false);
+            this.set('authorization.unauthorized', false);
+            this.set('authorization.pending', true);
+            this.dispatchEvent(new CustomEvent('pending'));
+            break;
+        }
+      }
+
+    }
+
+    window.customElements.define(SpotifyImplicitGrant.is, SpotifyImplicitGrant);
+  </script>
+</dom-module>
