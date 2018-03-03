@@ -1,6 +1,6 @@
 # \<spotify-implicit-grant\>
 
-
+**WARNING !** Work In Progress
 
 ## Install the Polymer-CLI
 
