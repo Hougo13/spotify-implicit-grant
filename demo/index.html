@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+  <title>spotify-implicit-grant demo</title>
+
+  <script src="../../webcomponentsjs/webcomponents-loader.js"></script>
+
+  <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
+  <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
+  <link rel="import" href="../../polymer/lib/elements/dom-bind.html">
+  <link rel="import" href="../spotify-implicit-grant.html">
+
+  <custom-style>
+    <style is="custom-style" include="demo-pages-shared-styles">
+    </style>
+  </custom-style>
+</head>
+
+<body unresolved>
+  <h1>Demo</h1>
+  <div class="vertical-section-container centered">
+    <h3>Basic spotify-implicit-grant demo</h3>
+
+    <demo-snippet>
+      <template is="dom-bind">
+        <spotify-implicit-grant client-id="c2d94849fcf8419cb33caf9af8d85f7b" auth-url={{authUrl}} access-token={{accessToken}} auto-redirect
+          keep-alive>
+          <div slot="unauthorized">
+            <h1>Unauthorized Slot</h1>
+            <p>Please connect yourself by clicking on the button below</p>
+            <button>
+              <a href="[[authUrl]]">Login</a>
+            </button>
+          </div>
+          <div slot="authorized">
+            <h1>Authorized slot</h1>
+            <p>[[accessToken]]</p>
+          </div>
+        </spotify-implicit-grant>
+      </template>
+    </demo-snippet>
+
+  </div>
+</body>
+
+</html>
