@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+  <title>spotify-implicit-grant test</title>
+
+  <script src="../../webcomponentsjs/webcomponents-loader.js"></script>
+  <script src="../../web-component-tester/browser.js"></script>
+
+  <link rel="import" href="../spotify-implicit-grant.html">
+</head>
+
+<body>
+
+  <test-fixture id="BasicTestFixture">
+    <template>
+      <spotify-implicit-grant client-id="super-cliend-id"></spotify-implicit-grant>
+    </template>
+  </test-fixture>
+
+  <script>
+    suite('<spotify-implicit-grant>', () => {
+      var myEl;
+      setup(function () {
+        myEl = fixture('BasicTestFixture');
+      });
+      test('instantiating the element with default properties works', () => {
+        //const element = fixture('BasicTestFixture');
+        assert.equal(myEl.scope, '');
+        assert.equal(myEl.cliendId, undefined);
+        /*const elementShadowRoot = element.shadowRoot;
+        const elementHeader = elementShadowRoot.querySelector('h2');
+        assert.equal(elementHeader.innerHTML, 'Hello spotify-implicit-grant!');*/
+      });
+
+    });
+  </script>
+
+</body>
+
+</html>

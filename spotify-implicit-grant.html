@@ -1,0 +1,337 @@
+<link rel="import" href="../polymer/polymer-element.html">
+<link rel="import" href="../iron-location/iron-location.html">
+<link rel="import" href="../app-storage/app-localstorage/app-localstorage-document.html">
+
+<dom-module id="spotify-implicit-grant">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+
+    <iron-location path={{_location.path}} query={{_location.query}} hash={{_location.hash}}></iron-location>
+
+    <template is="dom-if" if="{{!noStorage}}">
+      <app-localstorage-document key="[[_storeId]].state" data="{{_state}}"></app-localstorage-document>
+      <app-localstorage-document key="[[_storeId]].access_token" data="{{_accessToken}}"></app-localstorage-document>
+      <app-localstorage-document key="[[_storeId]].expire_date" data="{{_expireDate}}"></app-localstorage-document>
+    </template>
+
+    <template is="dom-if" if="{{authorization.unauthorized}}">
+      <slot name="unauthorized"></slot>
+    </template>
+    <template is="dom-if" if="{{authorization.authorized}}">
+      <slot name="authorized"></slot>
+    </template>
+    <template is="dom-if" if="{{authorization.pending}}">
+      <slot name="pending"></slot>
+    </template>
+  </template>
+
+  <script>
+    /**
+     * `spotify-implicit-grant` allows you to get a spotify access token via the implicit grant flow.
+     *
+     * You can get an authUrl to redirect your users to the spotify authorization page via a button for instance. 
+     * Or you can add the attribute `auto-redirect` and the component will automatically redirect the users to the spotify authorization page when needed.
+     *
+     * @customElement
+     * @polymer
+     * @demo demo/index.html
+     */
+    class SpotifyImplicitGrant extends Polymer.Element {
+      static get is() { return 'spotify-implicit-grant'; }
+      static get properties() {
+        return {
+
+          /**
+          * **Required**.
+          *
+          * The client ID provided to you by Spotify when you register your application.
+          */
+          clientId: {
+            type: String,
+          },
+          /**
+          * A space-separated list of spotify scopes.
+          */
+          scope: {
+            type: String,
+            value: '',
+          },
+          /**
+          * Whether or not to force the user to approve the app again if they’ve already done so. If false (default), a user who has already approved the application may be automatically redirected to the URI specified by redirect_uri. If true, the user will not be automatically redirected and will have to approve the app again.
+          */
+          showDialog: {
+            type: Boolean,
+            value: false,
+          },
+          /**
+          * A required but static field by Spotify.
+          */
+          _responseType: {
+            type: String,
+            value: 'token',
+          },
+          /**
+          * The URI to redirect to after the user grants/denies permission. This URI needs to be entered in the URI whitelist that you specify when you register your application.
+          */
+          _redirectUri: {
+            type: String,
+            computed: '_computeRedirectUri(callbackPath, _location.path)',
+          },
+          /**
+          * Used by default (when storage is enabled) for correlating requests and responses.
+          */
+          _state: {
+            type: String,
+            value: '',
+          },
+
+          /**
+          * Custom path for the redirectUri. By default the current path is used.
+          */
+          callbackPath: {
+            type: String,
+          },
+          /**
+          * Disable the use of localStorage. Not recommended because it disable the use of state.
+          */
+          noStorage: {
+            type: Boolean,
+            reflectToAttribute: true,
+            value: false,
+          },
+          /**
+          * Redirect automatically to the Spotify authorization page.
+          */
+          autoRedirect: {
+            type: Boolean,
+            reflectToAttribute: true,
+            value: false,
+          },
+          /**
+          * Put back the app in an unauthorized state when the access_token expire.
+          * Can be combined with autoRedirect to redirect automatically to the Spotify authorization page when the access_token expire.
+          */
+          keepAlive: {
+            type: Boolean,
+            reflectToAttribute: true,
+            value: false,
+          },
+          /**
+          * The url to the Spotify authorization page.
+          * Used generally in the unauthorizd slot.
+          */
+          authUrl: {
+            type: String,
+            computed: '_computeAuthUrl(clientId, _responseType, _redirectUri, _state, scope, showDialog)',
+            notify: true,
+          },
+          /**
+          * The access_token in read only mode to use only in the autorized slot.
+          */
+          accessToken: {
+            type: String,
+            notify: true,
+            readOnly: true,
+            computed: '_computeAccessToken(_accessToken)',
+          },
+          /**
+          * An object to represent the state of the authorization.
+          *
+          * @type {{authorized: Boolean, unauthorized: Boolean, pending: Boolean}}
+          */
+          authorization: {
+            type: Object,
+            readOnly: true,
+            notify: true,
+            value: {
+              authorized: false,
+              unauthorized: false,
+              pending: true,
+            },
+          },
+          /**
+          * The access_token used internally.
+          * Sync to the localStorage.
+          */
+          _accessToken: {
+            type: String,
+            value: '',
+          },
+          /**
+          * The date (in millis) of the token expiration.
+          * Sync to the localStorage.
+          */
+          _expireDate: {
+            type: Number,
+            value: 0,
+          },
+          /**
+          * Represent the window location.
+          *
+          * @type {{path: String, query: String, hash: String}}
+          */
+          _location: {
+            type: Object,
+            value: { path: '', query: '', hash: '' },
+          },
+          /**
+          * The key used in the localStorage.
+          */
+          _storeId: {
+            type: String,
+            computed: '_computeStoreId(clientId)',
+          },
+        };
+      }
+
+      constructor() {
+        super();
+
+        this.addEventListener('authorized', () => {
+          this._generateNewState();
+          if (this.keepAlive)
+            setTimeout(() => {
+              if (this.autoRedirect) {
+                this.redirectToAuthPage();
+              } else {
+                this._switchAuthorization('UNAUTHORIZED');
+              }
+            }, this.expireIn);
+        });
+
+        Polymer.RenderStatus.beforeNextRender(this, function () {
+
+          // Check if the token is stored
+          if (this._accessToken && this.expireIn > 0) {
+            this._switchAuthorization('AUTHORIZED');
+          }
+
+          // Look for an access_token in the hash of the url
+          let hash = new URLSearchParams(this._location.hash);
+          if (hash.has('access_token')) {
+            if (this.noStorage || this._state == hash.get('state')) {
+              this._accessToken = hash.get('access_token');
+              this._expireDate = Date.now() + (hash.get('expires_in') * 1000);
+              this._switchAuthorization('AUTHORIZED');
+            }
+            this.set('_location.hash', '');
+          }
+
+          // Look for an error in the query
+          let query = new URLSearchParams(this._location.query);
+          if (query.has('error')) {
+            if (this.noStorage || this._state == query.get('state')) {
+              this._generateNewState();
+              this._switchAuthorization('UNAUTHORIZED');
+              /**
+              * Fired when spotify api respond an error.
+              *
+              * @event error
+              */
+              this.dispatchEvent(new CustomEvent('error', { detail: { message: query.get('error') } }));
+            }
+            this.set('_location.query', '');
+          }
+
+          // Set to unauthorized by default
+          if (this.authorization.pending) {
+            this._generateNewState();
+            if (this.autoRedirect) {
+              this.redirectToAuthPage();
+            } else {
+              this._switchAuthorization('UNAUTHORIZED');
+            }
+          }
+
+        });
+      }
+
+      get expireIn() {
+        return this._expireDate - Date.now();
+      }
+
+      redirectToAuthPage() {
+        window.location.href = this.authUrl;
+      }
+
+      _computeRedirectUri(callbackPath, path) {
+        return window.location.origin + (callbackPath ? callbackPath : path);
+      }
+
+      _computeAuthUrl(clientId, responseType, redirectUri, state, scope, showDialog) {
+        const baseUrl = 'https://accounts.spotify.com/authorize?';
+        let query = `client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=${responseType}&show_dialog=${showDialog}`;
+
+        if (scope)
+          query += `&scope=${encodeURI(scope)}`;
+        if (state)
+          query += `&state=${state}`;
+
+        return baseUrl + query
+      }
+
+      _computeStoreId(cliendId) {
+        return `spotify-implicit-grand#${cliendId}`;
+      }
+
+      _computeAccessToken(accessToken) {
+        return accessToken;
+      }
+
+      _generateNewState() {
+        this._state = Math.random().toString(36).slice(2);
+      }
+
+      /**
+      * Set authorization state.
+      *
+      * @param {String} value AUTHORIZED, UNAUTHORIZED or PENDING.
+      */
+      _switchAuthorization(value) {
+        console.log(value)
+        switch (value) {
+          case 'AUTHORIZED':
+            this.set('authorization.authorized', true);
+            this.set('authorization.unauthorized', false);
+            this.set('authorization.pending', false);
+            /**
+            * Fired when `authorization` is set to AUTHORIZED.
+            *
+            * @event authorize
+            */
+            this.dispatchEvent(new CustomEvent('authorized'));
+            break;
+          case 'UNAUTHORIZED':
+            this.set('authorization.authorized', false);
+            this.set('authorization.unauthorized', true);
+            this.set('authorization.pending', false);
+            /**
+            * Fired when `authorization` is set to UNAUTHORIZED.
+            *
+            * @event authorize
+            */
+            this.dispatchEvent(new CustomEvent('unauthorized'));
+            break;
+          case 'PENDING':
+            this.set('authorization.authorized', false);
+            this.set('authorization.unauthorized', false);
+            this.set('authorization.pending', true);
+            /**
+            * Fired when `authorization` is set to PENDING.
+            *
+            * @event authorize
+            */
+            this.dispatchEvent(new CustomEvent('pending'));
+            break;
+        }
+      }
+
+    }
+
+    window.customElements.define(SpotifyImplicitGrant.is, SpotifyImplicitGrant);
+  </script>
+</dom-module>
