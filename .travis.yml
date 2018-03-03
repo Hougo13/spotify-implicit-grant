@@ -1,0 +1,7 @@
+language: node_js
+node_js: stable
+script:
+  - bash ./gh-pages_build.sh Hougo13 spotify-implicit-grant Hougo13 hougo13@gmail.com
+before_script:
+- npm install bower
+- export PATH=$PWD/node_modules/.bin:$PATH
